@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abtx2323.github.io/agent-shield/schema/v1/security-policy.json",
+  "title": "AgentShield SECURITY_POLICY.json",
+  "description": "Guardrail policy exported by AgentShield (https://abtx2323.github.io/agent-shield/). Prompt-level rings (L1-L3) reduce risk; L4-L6 must be enforced by the agent runtime or MCP gateway, not by the model.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile",
+    "activeDefenseRings",
+    "inputSanitization",
+    "runtimeControls",
+    "mcpServerPolicy",
+    "egressProtection"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "URL of this schema."
+    },
+    "profile": {
+      "type": "string",
+      "enum": ["naive", "devops", "exec", "hardened", "custom"],
+      "description": "AgentShield target profile the policy was exported from."
+    },
+    "activeDefenseRings": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "enum": ["L1", "L2", "L3", "L4", "L5", "L6"] },
+      "description": "Guardrail rings that were enabled at export time."
+    },
+    "inputSanitization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["xmlUntrustedSandboxing", "stripInvisibleUnicode", "recursiveBase64Inspect"],
+      "properties": {
+        "xmlUntrustedSandboxing": {
+          "type": "boolean",
+          "description": "L1: wrap emails, web pages, RAG chunks and tool output in <untrusted_context> and treat them as data, never instructions."
+        },
+        "stripInvisibleUnicode": {
+          "type": "boolean",
+          "description": "L2: remove Unicode format characters (\\p{Cf}: Plane-14 tags, zero-width, bidi controls) and variation selectors before tokenization, and flag inputs that contained them."
+        },
+        "recursiveBase64Inspect": {
+          "type": "boolean",
+          "description": "L2: decode Base64/hex/URL-encoded segments before running injection heuristics."
+        }
+      }
+    },
+    "runtimeControls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enforcePrivilegeHierarchy", "maxToolRetriesPerTurn", "maxTokenBudgetPerTurn"],
+      "properties": {
+        "enforcePrivilegeHierarchy": {
+          "type": "boolean",
+          "description": "L3: system > verified user > tool/RAG output."
+        },
+        "maxToolRetriesPerTurn": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "L3 circuit breaker. null means no cap (unsafe)."
+        },
+        "maxTokenBudgetPerTurn": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "description": "L3 token budget per turn. null means no budget (unsafe)."
+        }
+      }
+    },
+    "mcpServerPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pinToolDescriptionSha256",
+        "resolveSymlinksBeforePathCheck",
+        "allowedFilePaths",
+        "denyFilePatterns",
+        "requireHitlForTools"
+      ],
+      "properties": {
+        "pinToolDescriptionSha256": {
+          "type": "boolean",
+          "description": "L4: reject MCP tools whose description no longer matches its pinned SHA-256."
+        },
+        "resolveSymlinksBeforePathCheck": {
+          "type": "boolean",
+          "description": "L4: canonicalize paths (realpath) before checking them against allowedFilePaths."
+        },
+        "allowedFilePaths": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "L4: path globs file tools may touch. [\"/*\"] means unrestricted (unsafe)."
+        },
+        "denyFilePatterns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "L4: paths that are always refused, even inside allowedFilePaths."
+        },
+        "requireHitlForTools": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string" },
+          "description": "L5: tools that need explicit human approval before every call."
+        }
+      }
+    },
+    "egressProtection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stripExternalImages", "allowedDomains"],
+      "properties": {
+        "stripExternalImages": {
+          "type": "boolean",
+          "description": "L6: drop external images in model output: inline Markdown, reference-style Markdown and raw <img> tags."
+        },
+        "allowedDomains": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "L6: exact hostnames outbound requests and images may reach. [\"*\"] means any host (unsafe)."
+        }
+      }
+    },
+    "enforcementNote": {
+      "type": "string",
+      "description": "Human-readable reminder of where the policy has to be enforced."
+    }
+  }
+}

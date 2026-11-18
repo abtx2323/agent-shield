@@ -1,0 +1,14 @@
+{
+  "name": "agent-shield",
+  "private": true,
+  "description": "AgentShield — Visual Red-Team & MCP Hijack Range (single-file web app)",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/check-csp.mjs"
+  },
+  "devDependencies": {
+    "tailwindcss": "4.3.3"
+  }
+}
