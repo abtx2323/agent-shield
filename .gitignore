@@ -1,2 +1,15 @@
 node_modules/
 .DS_Store
+Thumbs.db
+
+# Secrets and local config: never commit these
+.env
+.env.*
+*.pem
+*.key
+
+# Editor and log noise
+.idea/
+.vscode/
+*.swp
+npm-debug.log*
