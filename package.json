@@ -9,6 +9,6 @@
     "check": "node scripts/check-csp.mjs"
   },
   "devDependencies": {
-    "tailwindcss": "4.3.3"
+    "tailwindcss": "4.3.5"
   }
 }
