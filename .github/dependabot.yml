@@ -7,6 +7,7 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
+    target-branch: "test"
   # Keeps the pinned tailwindcss build dependency up to date
   - package-ecosystem: npm
     directory: /
@@ -14,3 +15,4 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
+    target-branch: "test"
